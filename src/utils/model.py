@@ -5,6 +5,7 @@ import torch.nn as nn
 from monai.networks.nets import UNet,AttentionUnet
 from segmentation_models_pytorch import UnetPlusPlus
 from torchsummary import summary
+from unet_model import UNet as UNetCustom
 
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels):
@@ -182,27 +183,35 @@ class AttentionUnetwrapper(nn.Module):
 if __name__ == "__main__":
     # Test UNet
     # model = UNet(in_channels=3, out_channels=1)
-    # x = torch.randn((1, 3, 256, 256))
+    # x = torch.randn((1, 3, 256, 256)) 
     # print(model(x).shape)  # Expected: (1, 1, 256, 256)
     
     # Test PupilSegmentationUNet
-    model = PupilSegmentationUNet(pretrained=True)
-    x = torch.randn((1, 3, 256, 256))
-    #print(model(x).shape)  # Expected: (1, 1, 256, 256)
-    summary(model, (3, 256, 256))
+    # model = PupilSegmentationUNet(pretrained=True)
+    # x = torch.randn((1, 3, 256, 256))
+    # #print(model(x).shape)  # Expected: (1, 1, 256, 256)
+    # summary(model, (3, 256, 256))
 
 
-    model = Unetpluspluswrapper(in_channels=3, out_channels=1)
+    # model = Unetpluspluswrapper(in_channels=3, out_channels=1)
+    # x = torch.randn((1, 3, 256, 256))
+    # #print(model(x).shape)  # Expected: (1, 1, 256, 256)
+    # #print size of model in mb
+    # #print(sum(p.numel() for p in model.parameters())/1e6)
+    # summary(model, (3, 256, 256))
+
+
+    # model = AttentionUnetwrapper(in_channels=3, out_channels=1)
+    # x = torch.randn((1, 3, 256, 256))
+    # #print(model(x).shape)  # Expected: (1, 1, 256, 256)
+    # #print size of model in mb
+    # #print(sum(p.numel() for p in model.parameters())/1e6)
+    # summary(model, (3, 256, 256))
+
+    model = UNetCustom(in_channels=3, out_channels=1)
     x = torch.randn((1, 3, 256, 256))
-    #print(model(x).shape)  # Expected: (1, 1, 256, 256)
+    print(model(x).shape)  # Expected: (1, 1, 256, 256)
     #print size of model in mb
-    #print(sum(p.numel() for p in model.parameters())/1e6)
+    print(sum(p.numel() for p in model.parameters())/1e6)
     summary(model, (3, 256, 256))
 
-
-    model = AttentionUnetwrapper(in_channels=3, out_channels=1)
-    x = torch.randn((1, 3, 256, 256))
-    #print(model(x).shape)  # Expected: (1, 1, 256, 256)
-    #print size of model in mb
-    #print(sum(p.numel() for p in model.parameters())/1e6)
-    summary(model, (3, 256, 256))

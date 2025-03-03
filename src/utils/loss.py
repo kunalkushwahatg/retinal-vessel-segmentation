@@ -29,21 +29,42 @@ class BCEDiceLoss(nn.Module):
     def forward(self, inputs, targets):
         bce_loss = self.bce(inputs, targets)
         dice_loss = self.dice(inputs, targets)
-        return bce_loss + dice_loss
+        return bce_loss + dice_loss 
     
 
 class CompoundLoss(nn.Module):
     def __init__(self, alpha=0.5):
         super(CompoundLoss, self).__init__()
         self.alpha = alpha
-        self.bce_dice_loss = BCEDiceLoss()
-        self.dice_loss = DiceLoss()
+        self.bce = nn.BCEWithLogitsLoss()
+        self.dice = DiceLoss()
 
     def forward(self, inputs, targets):
-        bce_dice_loss = self.bce_dice_loss(inputs, targets)
-        dice_loss = self.dice_loss(inputs, targets)
-        return self.alpha * bce_dice_loss + (1 - self.alpha) * dice_loss
+        bce_loss = self.bce(inputs, targets)
+        dice_loss = self.dice(inputs, targets)
+        return self.alpha * bce_loss + (1 - self.alpha) * dice_loss
+
     
+
+class FocalLoss(nn.Module):
+    def __init__(self, alpha=0.5, gamma=2):
+        super(FocalLoss, self).__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.bce = nn.BCEWithLogitsLoss()
+
+    def forward(self, inputs, targets):
+        bce_loss = self.bce(inputs, targets)
+        inputs = torch.sigmoid(inputs)
+        inputs = inputs.view(-1)
+        targets = targets.view(-1)
+        
+        intersection = (inputs * targets).sum()
+        dice = (2. * intersection) / (inputs.sum() + targets.sum())
+        focal_loss = self.alpha * (1 - dice) ** self.gamma * bce_loss
+        return focal_loss
+
+
 # Example usage
 if __name__ == "__main__":
     criterion = DiceLoss()

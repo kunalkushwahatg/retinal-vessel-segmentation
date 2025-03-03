@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from dataset import SegmentationDataset
 from transform import SegmentationTransform  
-from model import PupilSegmentationUNet,Unetwrapper,UnetPlusPlus,AttentionUnetwrapper
+from model import PupilSegmentationUNet,Unetwrapper,UnetPlusPlus,AttentionUnetwrapper,UNetCustom
 from loss import DiceLoss,CompoundLoss
 from callbacks.logger import Logger
 from callbacks.model_checkpoint import ModelCheckpoint
@@ -89,7 +89,7 @@ class SegmentationTrainer:
         
 
     def _initialize_model(self):
-        self.model = UnetPlusPlus(in_channels=3,out_channels=1).to(self.config.device)
+        self.model = UNetCustom(in_channels=3,out_channels=1).to(self.config.device)
         self.optimizer = optim.AdamW(self.model.parameters(), lr=self.config.learning_rate)
         self.criterion = CompoundLoss()
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
