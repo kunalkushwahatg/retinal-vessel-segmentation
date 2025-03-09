@@ -3,7 +3,7 @@ from torch.utils.data import Dataset,dataloader
 from PIL import Image
 from transform import SegmentationTransform
 import matplotlib.pyplot as plt
-
+from datasetconfig import DatasetConfig
 
 class SegmentationDataset(Dataset):
     def __init__(self, image_dir, mask_dir, transform=None):
@@ -12,7 +12,7 @@ class SegmentationDataset(Dataset):
         self.transform = transform
         self.image_list = os.listdir(image_dir)
         self.output_list = os.listdir(mask_dir)
-
+        self.dc = DatasetConfig()
         # Sort the images and masks to ensure they are in the same order
         self.image_list.sort()
         self.output_list.sort()
@@ -24,8 +24,10 @@ class SegmentationDataset(Dataset):
         img_path = os.path.join(self.image_dir, self.image_list[idx])
         mask_path = os.path.join(self.mask_dir, self.output_list[idx])
         
-        
-        image = Image.open(img_path).convert("RGB")
+        if self.dc.input_channels != 1:
+            image = Image.open(img_path).convert("RGB")
+        else:
+            image = Image.open(img_path).convert("L")
         mask = Image.open(mask_path).convert("L")
 
         if self.transform:
@@ -39,8 +41,7 @@ class SegmentationDataset(Dataset):
 # Example usage
 if __name__ == "__main__":
     transform = SegmentationTransform(resize=(512, 512))
-    dataset = SegmentationDataset('data/full_data/images/', 'data/full_data/output/', transform)
-
+    dataset = SegmentationDataset('data/full_data/images_green/', 'data/full_data/output/', transform)
 
     #make dataloader
     dataloader = dataloader.DataLoader(dataset,batch_size=2,shuffle=True)

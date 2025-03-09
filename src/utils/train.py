@@ -10,7 +10,7 @@ from loss import DiceLoss,CompoundLoss
 from callbacks.logger import Logger
 from callbacks.model_checkpoint import ModelCheckpoint
 from callbacks.visualizepredictions import VisualizePredictions
-from callbacks.earlystopping import EarlyStopping
+from callbacks.earlystopping import EarlyStopping   
 from evaluation import SegmentationEvaluator  
 import os
 import numpy as np
@@ -18,7 +18,7 @@ from trainingconfig import TrainingConfig
 from datasetconfig import DatasetConfig
 import gc
 import matplotlib.pyplot as plt
-
+from unet_model import UNet
 
 #check if the model is training on GPU or CPU
 print("Cuda available: ", torch.cuda.is_available())
@@ -89,7 +89,7 @@ class SegmentationTrainer:
         
 
     def _initialize_model(self):
-        self.model = UNetCustom(in_channels=3,out_channels=1).to(self.config.device)
+        self.model = UNet(n_channels=1, n_classes=1).to(self.config.device)
         self.optimizer = optim.AdamW(self.model.parameters(), lr=self.config.learning_rate)
         self.criterion = CompoundLoss()
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(

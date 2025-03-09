@@ -1,3 +1,8 @@
+#gabor filter 
+# hybrid attention 
+# cross attention 
+# 1X1 conv 
+
 import torch
 from torchvision import models
 import torch.nn as nn
@@ -21,7 +26,7 @@ class DoubleConv(nn.Module):
 
     def forward(self, x):
         return self.conv(x)
-
+    
 class UNetCustom(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -214,4 +219,6 @@ if __name__ == "__main__":
     #print size of model in mb
     print(sum(p.numel() for p in model.parameters())/1e6)
     summary(model, (3, 256, 256))
+
+
 

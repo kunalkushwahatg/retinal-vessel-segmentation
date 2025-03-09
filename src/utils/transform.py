@@ -3,14 +3,25 @@ from torchvision import transforms
 from PIL import Image
 import torch
 import matplotlib.pyplot as plt
-
+from datasetconfig import DatasetConfig
 class SegmentationTransform:
     def __init__(self, resize=(256, 256), mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)):
-        self.image_transform = transforms.Compose([
-            transforms.Resize(resize),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=mean, std=std)
-        ])
+        dc = DatasetConfig()
+
+        if dc.input_channels != 1:
+            self.image_transform = transforms.Compose([
+                transforms.Resize(resize),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=mean, std=std)
+            ])
+        else:
+            #for one channel images
+            self.image_transform = transforms.Compose([
+                transforms.Resize(resize),
+                transforms.ToTensor()
+            ])
+        
+
         self.mask_transform = transforms.Compose([
             transforms.Resize(resize),
             transforms.ToTensor()
@@ -22,14 +33,19 @@ class SegmentationTransform:
     
     def denormalize(self, image):
         #take a tensor image and return it in the form of a numpy array
-        return image * (torch.tensor(self.std).view(3, 1, 1)) + torch.tensor(self.mean).view(3, 1, 1)
+        
+        if self.dc.input_channels != 1:
+            image = image * torch.tensor(self.std).view(3, 1, 1) + torch.tensor(self.mean).view(3, 1, 1)
+        image = image.permute(1, 2, 0).numpy()
+        
+        return image
 
 
 # Example usage
 if __name__ == "__main__":
 
-    image = Image.open('data/DRHAGIS/augmented/image/9_2.jpg')
-    mask = Image.open('data/DRHAGIS/augmented/output/_2.png')
+    image = Image.open('data/full_data/images_green/2.jpg')
+    mask = Image.open('data/full_data/output/2.png')
 
 
     transform = SegmentationTransform(resize=(512, 512))
