@@ -89,15 +89,25 @@ class SegmentationTrainer:
         
 
     def _initialize_model(self):
-        self.model = UNet(n_channels=1, n_classes=1).to(self.config.device)
+        self.model = Unetwrapper(in_channels=DatasetConfig().input_channels, out_channels=DatasetConfig().num_classes).to(self.config.device)
         self.optimizer = optim.AdamW(self.model.parameters(), lr=self.config.learning_rate)
         self.criterion = CompoundLoss()
-        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-            self.optimizer, 
-            mode='max', 
-            factor=0.1, 
-            patience=2
-        )
+        if self.config.lr_sheduler == 'ReduceLROnPlateau':
+            self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+                self.optimizer, 
+                mode='max', 
+                factor=0.1, 
+                patience=2
+            )
+        elif self.config.lr_sheduler == 'StepLR':
+            self.scheduler = optim.lr_scheduler.StepLR(
+                self.optimizer,
+                step_size=5,
+                gamma=0.1
+            )
+        else: 
+            #constant learning rate
+            pass
 
         # SegmentationEvaluator is used to calculate the metrics 
         self.evaluator = SegmentationEvaluator(num_classes=1, device=self.config.device)
@@ -143,7 +153,7 @@ class SegmentationTrainer:
 
             loss.backward()
             #gradient clipping is used to prevent the exploding gradient problem
-            #torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.gradient_clip)
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.gradient_clip)
             
             self.optimizer.step()
 
@@ -175,7 +185,12 @@ class SegmentationTrainer:
             val_metrics = self._validate()
             
             # Update learning rate
-            self.scheduler.step(val_metrics['dice'])
+            if self.config.lr_sheduler == 'ReduceLROnPlateau':
+                self.scheduler.step(val_metrics['dice'])
+            elif self.config.lr_sheduler == 'StepLR':
+                self.scheduler.step()
+            else :
+                pass
             
             # Logging
             self.logger.log(

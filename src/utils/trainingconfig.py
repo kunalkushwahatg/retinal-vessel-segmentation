@@ -15,4 +15,5 @@ class TrainingConfig:
         self.early_stop_delta = 0.01
         self.train_test_split_ratio = 0.8
         self.seed = 42
+        self.lr_sheduler = 'ReduceLROnPlateau'
         

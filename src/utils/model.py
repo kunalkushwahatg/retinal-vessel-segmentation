@@ -147,8 +147,8 @@ class Unetwrapper(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.unet = UNet(spatial_dims=2,
-                    in_channels=3,
-                    out_channels=1,
+                    in_channels=in_channels,
+                    out_channels=out_channels,
                     channels=(64, 128, 256, 512, 1024),
                     strides=(2, 2, 2, 2),
                     num_res_units=2)
@@ -222,3 +222,6 @@ if __name__ == "__main__":
 
 
 
+#git add model.py train.py datasetconfig.py trainingconfig.py unet_model.py gabor_filter.py 
+
+#
