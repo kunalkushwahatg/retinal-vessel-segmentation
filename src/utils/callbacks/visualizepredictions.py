@@ -68,4 +68,5 @@ class VisualizePredictions:
             img = self.denormalize(sample[0])
             self.plot_segmentation(img, sample[1], pred_mask, save_path)
 
-# Usage
+# take sample image 
+if __name__ == "__main__":
