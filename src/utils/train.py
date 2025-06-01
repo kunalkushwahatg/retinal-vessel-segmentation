@@ -29,7 +29,7 @@ os.makedirs(f'{config.output_dir}/predictions', exist_ok=True)
 
 
 # Load data
-dataset_path = 'C:/Users/kunal/retinal-vessel-segmentation/data/datasets/CHASE_DB1/'
+dataset_path = './data/datasets/CHASE_DB1/'
 train_dataset = SegmentationDataset(dataset_path, is_valid=False)
 val_dataset = SegmentationDataset(dataset_path, is_valid=True)
 
