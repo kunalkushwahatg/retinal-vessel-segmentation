@@ -40,7 +40,7 @@ def download_all_datasets():
     ]
     
     # Create a data directory if it doesn't exist
-    data_dir = "datasets"
+    data_dir = "./data/datasets"
     os.makedirs(data_dir, exist_ok=True)
     
     for url, filename in datasets:
