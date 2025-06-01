@@ -6,3 +6,4 @@ matplotlib
 numpy
 segmentation_models_pytorch
 tqdm
+monai
