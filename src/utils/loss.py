@@ -19,6 +19,34 @@ class DiceLoss(nn.Module):
         return 1 - dice
 
 
+class TverskyLoss(nn.Module):
+    def __init__(self, alpha=0.7, beta=0.3, eps=1e-6):
+        super(TverskyLoss, self).__init__()
+        self.alpha = alpha
+        self.beta = beta
+        self.eps = eps
+
+    def forward(self, pred, target):
+        tp = (pred * target).sum()
+        fp = ((1 - target) * pred).sum()
+        fn = (target * (1 - pred)).sum()
+        return 1 - ((tp + self.eps) / (tp + self.alpha * fp + self.beta * fn + self.eps))
+    
+class FocalTverskyLoss(nn.Module):
+    def __init__(self, alpha=0.7, beta=0.3, gamma=0.75, eps=1e-6):
+        super(FocalTverskyLoss, self).__init__()
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+        self.eps = eps
+
+    def forward(self, pred, target):
+        tp = (pred * target).sum()
+        fp = ((1 - target) * pred).sum()
+        fn = (target * (1 - pred)).sum()
+        tversky = (tp + self.eps) / (tp + self.alpha * fp + self.beta * fn + self.eps)
+        return torch.pow(1 - tversky, self.gamma)
+
 class BCEDiceLoss(nn.Module):
     def __init__(self, smooth=1e-5):
         super(BCEDiceLoss, self).__init__()
@@ -31,17 +59,19 @@ class BCEDiceLoss(nn.Module):
         return bce_loss + dice_loss 
     
 class CompoundLoss(nn.Module):
-    def __init__(self, alpha=0.4):
+    def __init__(self, alpha=0.3):
         super(CompoundLoss, self).__init__()
         self.alpha = alpha
         self.bce = nn.BCEWithLogitsLoss()
         self.dice = DiceLoss()
+        self.ft = FocalTverskyLoss()
 
     def forward(self, logits, targets):
         bce_loss = self.bce(logits, targets)
         probs = torch.sigmoid(logits)
         dice_loss = self.dice(probs, targets)
-        return self.alpha * bce_loss + (1 - self.alpha) * dice_loss
+        focal_tversky_loss = self.ft(probs, targets)
+        return self.alpha * bce_loss + (1 - self.alpha) * dice_loss + 0.4 * focal_tversky_loss
 
 
 class FocalLoss(nn.Module):

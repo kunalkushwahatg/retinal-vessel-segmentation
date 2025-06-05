@@ -2,8 +2,8 @@ import torch
 class TrainingConfig:
     def __init__(self):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model_name = 'attention'
-        self.in_channels = 3
+        self.model_name = 'eldsnet'  # Model name for saving results
+        self.in_channels = 1
         self.classes = 1
         self.input_size = 512
         self.debug = False
@@ -21,5 +21,6 @@ class TrainingConfig:
         self.lr_scheduler = 'ReduceLROnPlateau'
         self.scheduler_patience = 1
         self.scheduler_step_size = 5
-        self.prediction_threshold = 0.5 # New config parameter
+        self.prediction_threshold = 0.7 # New config parameter
         self.evaluate_every = 20
+        self.use_gabor = True

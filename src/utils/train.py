@@ -8,13 +8,14 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from monai.networks.nets import UNet as MONAIUNet  # Alias to avoid name conflict
 from models.attention_unet import AttentionUNet  # Assuming you have this model defined
+from models.fft_attention import UNetWithCBAMAndFourier
 from monai.networks.layers import Norm  # Needed for model initialization
 from evaluate import Evaluation
 from dataset import SegmentationDataset
 from loss import CompoundLoss
 from models.unetbasic import UNet
 from trainingconfig import TrainingConfig
-
+from models.elsdn import ELSDNetSegmentation
 
 # Check CUDA
 print("Cuda available:", torch.cuda.is_available())
@@ -62,8 +63,8 @@ model = MONAIUNet(
     norm=Norm.BATCH,  # Or Norm.INSTANCE, Norm.BATCH is common
 ).to(config.device)
 #model = UNet(in_channels=config.in_channels, out_channels=config.classes).to(config.device)
-model = AttentionUNet(in_channels=config.in_channels, n_classes=config.classes).to(config.device)
-
+# model = AttentionUNet(in_channels=config.in_channels, n_classes=config.classes).to(config.device)
+model = ELSDNetSegmentation(num_classes=1).to(config.device)  # Assuming ELSDNetSegmentation is defined in models.elsd
 optimizer = optim.AdamW(model.parameters(), lr=config.learning_rate)
 criterion = CompoundLoss()
 

@@ -8,13 +8,18 @@ import torchvision.transforms.functional as TF
 import torch
 import numpy as np
 
+
 class SegmentationDataset(Dataset):
     def __init__(self, dataset_path, is_valid=False):
+        self.config = TrainingConfig()
         self.image_dir = dataset_path + "train/input/" if not is_valid else dataset_path + "val/input/"
         self.label_dir = dataset_path + "train/label/" if not is_valid else dataset_path + "val/label/"
+        if self.config.use_gabor:
+            print("Using Gabor filter for images")
+            self.image_dir = dataset_path + "train/input_gabor/" if not is_valid else dataset_path + "val/input_gabor/"
         self.image_list = sorted(os.listdir(self.image_dir))
         self.label_list = sorted(os.listdir(self.label_dir))
-        self.config = TrainingConfig()
+        
         self.is_valid = is_valid
 
     def __len__(self):
@@ -25,12 +30,15 @@ class SegmentationDataset(Dataset):
         label_path = os.path.join(self.label_dir, self.label_list[idx])
 
         # Load image and mask
-        image = Image.open(img_path).convert("RGB" if self.config.in_channels != 1 else "L")
+        image = Image.open(img_path).convert("RGB")
         label = Image.open(label_path).convert("L")
 
         # Resize to expected input size
         image = image.resize((self.config.input_size, self.config.input_size))
         label = label.resize((self.config.input_size, self.config.input_size))
+        # Apply Gabor filter if specified
+
+
 
         # Apply data augmentation (only for training)
         if not self.is_valid:
@@ -43,21 +51,26 @@ class SegmentationDataset(Dataset):
                 image = TF.rotate(image, angle)
                 label = TF.rotate(label, angle)
 
+
             # if torch.rand(1) < 0.5:
             #     color_jitter = tf.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1)
             #     image = color_jitter(image)
 
         # Convert to tensors
         input_tensor = TF.to_tensor(image)  # shape: C x H x W, scaled to [0, 1]
+        if torch.rand(1) < 0.3:
+            noise = torch.randn_like(input_tensor) * 0.01
+            input_tensor = torch.clamp(input_tensor + noise, 0, 1)
+
         target_tensor = torch.tensor(np.array(label), dtype=torch.float32).unsqueeze(0) / 255.0
  # 1 x H x W
 
         # Normalize image tensor (skip if grayscale)
-        if self.config.in_channels == 3:
+        if self.config.in_channels == 3 and not self.config.use_gabor:
             normalize_transform = tf.Normalize(mean=[0.485, 0.456, 0.406],
                                                std=[0.229, 0.224, 0.225])
             input_tensor = normalize_transform(input_tensor)
-        
+
 
 
         return input_tensor, target_tensor
@@ -66,11 +79,11 @@ class SegmentationDataset(Dataset):
 if __name__ == "__main__":
     dataset = SegmentationDataset(dataset_path='C:/Users/kunal/retinal-vessel-segmentation/data/datasets/CHASE_DB1/', is_valid=False)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True)
-
+    config = TrainingConfig()
     for i in range(5):
         image, label = dataset[i]
         #denormalize_image that is mean and std
-        if dataset.dc.input_channels == 3:
+        if config.in_channels == 3:
             mean = torch.tensor([0.485, 0.456, 0.406])
             std = torch.tensor([0.229, 0.224, 0.225])
             image = image * std[:, None, None] + mean[:, None, None]
